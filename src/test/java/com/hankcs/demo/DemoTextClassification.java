@@ -14,12 +14,17 @@ package com.hankcs.demo;
 
 import com.hankcs.hanlp.classification.classifiers.IClassifier;
 import com.hankcs.hanlp.classification.classifiers.NaiveBayesClassifier;
+import com.hankcs.hanlp.classification.corpus.FileDataSet;
+import com.hankcs.hanlp.classification.corpus.IDataSet;
 import com.hankcs.hanlp.classification.models.NaiveBayesModel;
 import com.hankcs.hanlp.corpus.io.IOUtil;
 import com.hankcs.hanlp.utility.TestUtility;
+import com.hankcs.hanlp.classification.tokenizers.BlankTokenizer;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.List;
+import java.util.Map;
 
 /**
  * 第一个demo,演示文本分类最基本的调用方式
@@ -31,7 +36,9 @@ public class DemoTextClassification
     /**
      * 搜狗文本分类语料库5个类目，每个类目下1000篇文章，共计5000篇文章
      */
-    public static final String CORPUS_FOLDER = TestUtility.ensureTestData("搜狗文本分类语料库迷你版", "http://file.hankcs.com/corpus/sogou-text-classification-corpus-mini.zip");
+    // public static final String CORPUS_FOLDER = "/tmp/classify_training_via_pchomeshopping"; // TestUtility.ensureTestData("搜狗文本分类语料库迷你版", "http://hanlp.linrunsoft.com/release/corpus/sogou-text-classification-corpus-mini.zip");
+    public static final String CORPUS_FOLDER = "/tmp/classify_training"; // TestUtility.ensureTestData("搜狗文本分类语料库迷你版", "http://hanlp.linrunsoft.com/release/corpus/sogou-text-classification-corpus-mini.zip");
+
     /**
      * 模型保存路径
      */
@@ -41,16 +48,32 @@ public class DemoTextClassification
     public static void main(String[] args) throws IOException
     {
         IClassifier classifier = new NaiveBayesClassifier(trainOrLoadModel());
-        predict(classifier, "C罗获2018环球足球奖最佳球员 德尚荣膺最佳教练");
+/*        predict(classifier, "C罗获2018环球足球奖最佳球员 德尚荣膺最佳教练");
         predict(classifier, "英国造航母耗时8年仍未服役 被中国速度远远甩在身后");
         predict(classifier, "研究生考录模式亟待进一步专业化");
         predict(classifier, "如果真想用食物解压,建议可以食用燕麦");
-        predict(classifier, "通用及其部分竞争对手目前正在考虑解决库存问题");
+        predict(classifier, "通用及其部分竞争对手目前正在考虑解决库存问题");*/
+        predict(classifier, "aife life iPhone htc 智慧型 手機 水鑽 鑽石 耳機孔 防塵塞 耳機塞 防潮塞 歡迎 大量 批發");
+        predict(classifier, "EF 橫線 點 點 襪 - 灰 22 24 cm愛買");
+        predict(classifier, "德國WMF Perfect Plus 22公分 快易鍋 (4.5L)");
+        predict(classifier, "ASUS 華碩 Full HD 低藍光不閃屏螢幕 - 22型 (VP229DA)");
+        predict(classifier, "acer 宏碁 va 面板 4k 解析度 液晶 螢幕 32 型 et322qk");
     }
 
     private static void predict(IClassifier classifier, String text)
     {
-        System.out.printf("《%s》 属于分类 【%s】\n", text, classifier.classify(text));
+        /*
+        for(Map.Entry<String, Double> entry : classifier.predictV2(text).entrySet()) {
+            System.out.printf("《%s》 属于分类 【%s】, 【%f】\n", text, entry.getKey(), entry.getValue());
+        }
+        */
+
+        List<String> categories = classifier.predict(text, 3);
+        for (String category : categories) {
+            System.out.printf("《%s》 属于分类 【%s】\n", text, category);
+        }
+
+        // System.out.printf("《%s》 属于分类 【%s】\n", text, classifier.classify(text));
     }
 
     private static NaiveBayesModel trainOrLoadModel() throws IOException
@@ -67,7 +90,13 @@ public class DemoTextClassification
         }
 
         IClassifier classifier = new NaiveBayesClassifier(); // 创建分类器，更高级的功能请参考IClassifier的接口定义
-        classifier.train(CORPUS_FOLDER);                     // 训练后的模型支持持久化，下次就不必训练了
+
+        IDataSet trainingCorpus = new FileDataSet().                          // FileDataSet省内存，可加载大规模数据集
+            setTokenizer(new BlankTokenizer()).                               // 支持不同的ITokenizer，详见源码中的文档
+            load(CORPUS_FOLDER, "UTF-8", 1.0);
+        classifier.train(trainingCorpus);
+
+        // classifier.train(CORPUS_FOLDER);                     // 训练后的模型支持持久化，下次就不必训练了
         model = (NaiveBayesModel) classifier.getModel();
         IOUtil.saveObjectTo(model, MODEL_PATH);
         return model;

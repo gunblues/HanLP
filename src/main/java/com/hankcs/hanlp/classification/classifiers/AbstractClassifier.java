@@ -21,6 +21,7 @@ import com.hankcs.hanlp.utility.MathUtility;
 import java.io.IOException;
 import java.util.Map;
 import java.util.TreeMap;
+import java.util.Collections;
 
 import static com.hankcs.hanlp.classification.utilities.io.ConsoleLogger.logger;
 
@@ -48,6 +49,7 @@ public abstract class AbstractClassifier implements IClassifier
      * @throws IllegalArgumentException
      * @throws IllegalStateException
      */
+
     @Override
     public String classify(String text) throws IllegalArgumentException, IllegalStateException
     {
@@ -119,6 +121,33 @@ public abstract class AbstractClassifier implements IClassifier
         {
             scoreMap.put(model.catalog[i], probs[i]);
         }
+        return scoreMap;
+    }
+
+    @Override
+    public Map<Double, String> predict(Document document, double threshold)
+    {
+        AbstractModel model = getModel();
+        if (model == null)
+        {
+            throw new IllegalStateException("未训练模型！无法执行预测！");
+        }
+        if (document == null)
+        {
+            throw new IllegalArgumentException("参数 text == null");
+        }
+
+        double[] probs = categorize(document);
+        Map<Double, String> scoreMap = new TreeMap<Double, String>(Collections.reverseOrder());
+        for (int i = 0; i < probs.length; i++)
+        {
+            if (probs[i] < threshold)
+            {
+                continue;
+            }
+            scoreMap.put(probs[i], model.catalog[i]);
+        }
+
         return scoreMap;
     }
 

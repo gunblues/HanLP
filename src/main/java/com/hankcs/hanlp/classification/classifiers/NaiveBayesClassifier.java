@@ -116,6 +116,7 @@ public class NaiveBayesClassifier extends AbstractClassifier
         return model;
     }
 
+
     public Map<String, Double> predict(String text) throws IllegalArgumentException, IllegalStateException
     {
         if (model == null)
@@ -131,6 +132,36 @@ public class NaiveBayesClassifier extends AbstractClassifier
         Document doc = new Document(model.wordIdTrie, model.tokenizer.segment(text));
 
         return predict(doc);
+    }
+
+
+    public List<String> predict(String text, int count) throws IllegalArgumentException, IllegalStateException
+    {
+        if (model == null)
+        {
+            throw new IllegalStateException("未训练模型！无法执行预测！");
+        }
+        if (text == null)
+        {
+            throw new IllegalArgumentException("参数 text == null");
+        }
+
+        //分词，创建文档
+        Document doc = new Document(model.wordIdTrie, model.tokenizer.segment(text));
+
+        double threshold = 0.01;
+        Map<Double, String> scoreMap = predict(doc, threshold);
+
+        List<String> categories = new ArrayList<String>();
+        for(Map.Entry<Double,String> entry : scoreMap.entrySet()) {
+            Double score = entry.getKey();
+            String category = entry.getValue();
+            if (categories.size() < count) {
+                categories.add(String.format("%s\t%f", category, score));
+            }
+        }
+
+        return categories;
     }
 
     @Override

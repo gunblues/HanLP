@@ -16,6 +16,7 @@ import com.hankcs.hanlp.classification.corpus.IDataSet;
 import com.hankcs.hanlp.classification.models.AbstractModel;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -49,6 +50,9 @@ public interface IClassifier
      * @return
      */
     Map<String, Double> predict(Document document) throws IllegalArgumentException, IllegalStateException;
+
+    List<String> predict(String text, int count) throws IllegalArgumentException, IllegalStateException;
+    Map<Double, String> predict(Document document, double threshold) throws IllegalArgumentException, IllegalStateException;
 
     /**
      * 预测分类
