@@ -18,7 +18,7 @@ public class FMeasure implements Serializable
     /**
      * 测试样本空间
      */
-    int size;
+    public int size;
     /**
      * 平均准确率
      */

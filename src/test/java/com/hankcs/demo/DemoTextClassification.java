@@ -16,7 +16,10 @@ import com.hankcs.hanlp.classification.classifiers.IClassifier;
 import com.hankcs.hanlp.classification.classifiers.NaiveBayesClassifier;
 import com.hankcs.hanlp.classification.corpus.FileDataSet;
 import com.hankcs.hanlp.classification.corpus.IDataSet;
+import com.hankcs.hanlp.classification.corpus.MemoryDataSet;
 import com.hankcs.hanlp.classification.models.NaiveBayesModel;
+import com.hankcs.hanlp.classification.statistics.evaluations.Evaluator;
+import com.hankcs.hanlp.classification.statistics.evaluations.FMeasure;
 import com.hankcs.hanlp.corpus.io.IOUtil;
 import com.hankcs.hanlp.utility.TestUtility;
 import com.hankcs.hanlp.classification.tokenizers.BlankTokenizer;
@@ -36,13 +39,12 @@ public class DemoTextClassification
     /**
      * 搜狗文本分类语料库5个类目，每个类目下1000篇文章，共计5000篇文章
      */
-    // public static final String CORPUS_FOLDER = "/tmp/classify_training_via_pchomeshopping"; // TestUtility.ensureTestData("搜狗文本分类语料库迷你版", "http://hanlp.linrunsoft.com/release/corpus/sogou-text-classification-corpus-mini.zip");
-    public static final String CORPUS_FOLDER = "/tmp/classify_training"; // TestUtility.ensureTestData("搜狗文本分类语料库迷你版", "http://hanlp.linrunsoft.com/release/corpus/sogou-text-classification-corpus-mini.zip");
+    public static final String CORPUS_FOLDER = "data/test/mini_orca_training_data"; // TestUtility.ensureTestData("搜狗文本分类语料库迷你版", "http://hanlp.linrunsoft.com/release/corpus/sogou-text-classification-corpus-mini.zip");
 
     /**
      * 模型保存路径
      */
-    public static final String MODEL_PATH = "data/test/classification-model.ser";
+    public static final String MODEL_PATH = "data/test/classification-mini-orca-model.ser";
 
 
     public static void main(String[] args) throws IOException
@@ -79,7 +81,10 @@ public class DemoTextClassification
     private static NaiveBayesModel trainOrLoadModel() throws IOException
     {
         NaiveBayesModel model = (NaiveBayesModel) IOUtil.readObjectFrom(MODEL_PATH);
-        if (model != null) return model;
+        if (model != null)
+        {
+            return model;
+        }
 
         File corpusFolder = new File(CORPUS_FOLDER);
         if (!corpusFolder.exists() || !corpusFolder.isDirectory())
@@ -92,12 +97,19 @@ public class DemoTextClassification
         IClassifier classifier = new NaiveBayesClassifier(); // 创建分类器，更高级的功能请参考IClassifier的接口定义
 
         IDataSet trainingCorpus = new FileDataSet().                          // FileDataSet省内存，可加载大规模数据集
-            setTokenizer(new BlankTokenizer()).                               // 支持不同的ITokenizer，详见源码中的文档
-            load(CORPUS_FOLDER, "UTF-8", 1.0);
+            setBlankTokenizer().                               // 支持不同的ITokenizer，详见源码中的文档
+            load(CORPUS_FOLDER, "UTF-8", 0.9);
         classifier.train(trainingCorpus);
 
-        // classifier.train(CORPUS_FOLDER);                     // 训练后的模型支持持久化，下次就不必训练了
         model = (NaiveBayesModel) classifier.getModel();
+
+        IDataSet testingCorpus = new MemoryDataSet(model).
+            load(CORPUS_FOLDER, "UTF-8", -0.1);        // 后10%作为测试集
+        // 计算准确率
+        FMeasure result = ((NaiveBayesClassifier)classifier).evaluate(testingCorpus);
+        System.out.println(result);
+
+
         IOUtil.saveObjectTo(model, MODEL_PATH);
         return model;
     }

@@ -13,6 +13,8 @@ package com.hankcs.hanlp.classification.corpus;
 
 import com.hankcs.hanlp.classification.collections.FrequencyMap;
 import com.hankcs.hanlp.classification.models.AbstractModel;
+import com.hankcs.hanlp.classification.tokenizers.BlankTokenizer;
+import com.hankcs.hanlp.classification.tokenizers.ITokenizer;
 
 import java.io.*;
 import java.util.Iterator;
@@ -58,6 +60,12 @@ public class FileDataSet extends AbstractDataSet
     public FileDataSet() throws IOException
     {
         this(File.createTempFile(String.valueOf(System.currentTimeMillis()), ".dat"));
+    }
+
+    public IDataSet setBlankTokenizer()
+    {
+        setTokenizer(new BlankTokenizer());
+        return this;
     }
 
     @Override

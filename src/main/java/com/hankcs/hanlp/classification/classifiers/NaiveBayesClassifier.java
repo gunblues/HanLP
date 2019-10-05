@@ -1,5 +1,6 @@
 package com.hankcs.hanlp.classification.classifiers;
 
+import com.hankcs.hanlp.classification.statistics.evaluations.FMeasure;
 import com.hankcs.hanlp.utility.MathUtility;
 import com.hankcs.hanlp.collection.trie.bintrie.BinTrie;
 import com.hankcs.hanlp.classification.corpus.*;
@@ -232,5 +233,79 @@ public class NaiveBayesClassifier extends AbstractClassifier
         featureData.featureCategoryJointCount = featureCategoryJointCount;
 
         return featureData;
+    }
+
+    public FMeasure evaluate(IDataSet testingDataSet)
+    {
+        int c = this.model.catalog.length;
+        double[] TP_FP = new double[c]; // 判定为某个类别的数量
+        double[] TP_FN = new double[c]; // 某个类别的样本数量
+        double[] TP = new double[c];    // 判定为某个类别且判断正确的数量
+        double time = System.currentTimeMillis();
+        for (Document document : testingDataSet)
+        {
+            final int out = this.label(document);
+            final int key = document.category;
+            ++TP_FP[out];
+            ++TP_FN[key];
+            if (key == out)
+            {
+                ++TP[out];
+            }
+        }
+        time = System.currentTimeMillis() - time;
+
+        FMeasure result = calculate(c, testingDataSet.size(), TP, TP_FP, TP_FN);
+        result.catalog = testingDataSet.getCatalog().toArray();
+        result.speed = result.size / (time / 1000.);
+
+        return result;
+    }
+
+    /**
+     *
+     * @param c 类目数量
+     * @param size 样本数量
+     * @param TP 判定为某个类别且判断正确的数量
+     * @param TP_FP 判定为某个类别的数量
+     * @param TP_FN 某个类别的样本数量
+     * @return
+     */
+    private static FMeasure calculate(int c, int size, double[] TP, double[] TP_FP, double[] TP_FN)
+    {
+        double precision[] = new double[c];
+        double recall[] = new double[c];
+        double f1[] = new double[c];
+        double accuracy[] = new double[c];
+        FMeasure result = new FMeasure();
+        result.size = size;
+
+        for (int i = 0; i < c; i++)
+        {
+            double TN = result.size - TP_FP[i] - (TP_FN[i] - TP[i]);
+            accuracy[i] = (TP[i] + TN) / result.size;
+            if (TP[i] != 0)
+            {
+                precision[i] = TP[i] / TP_FP[i];
+                recall[i] = TP[i] / TP_FN[i];
+                result.average_accuracy += TP[i];
+            }
+            else
+            {
+                precision[i] = 0;
+                recall[i] = 0;
+            }
+            f1[i] = 2 * precision[i] * recall[i] / (precision[i] + recall[i]);
+        }
+        result.average_precision = MathUtility.average(precision);
+        result.average_recall = MathUtility.average(recall);
+        result.average_f1 = 2 * result.average_precision * result.average_recall
+            / (result.average_precision + result.average_recall);
+        result.average_accuracy /= (double) result.size;
+        result.accuracy = accuracy;
+        result.precision = precision;
+        result.recall = recall;
+        result.f1 = f1;
+        return result;
     }
 }
