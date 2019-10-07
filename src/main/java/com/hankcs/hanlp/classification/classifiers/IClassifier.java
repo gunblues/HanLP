@@ -70,7 +70,7 @@ public interface IClassifier
      * @throws IllegalArgumentException
      * @throws IllegalStateException
      */
-    int label(Document document) throws IllegalArgumentException, IllegalStateException;
+    Map<Integer, Double> label(Document document) throws IllegalArgumentException, IllegalStateException;
 
     /**
      * 预测最可能的分类

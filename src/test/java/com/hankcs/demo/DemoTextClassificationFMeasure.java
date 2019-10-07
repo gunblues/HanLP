@@ -44,7 +44,7 @@ public class DemoTextClassificationFMeasure
         IDataSet testingCorpus = new MemoryDataSet(classifier.getModel()).
             load(CORPUS_FOLDER, "UTF-8", -0.1);        // 后10%作为测试集
         // 计算准确率
-        FMeasure result = Evaluator.evaluate((NaiveBayesClassifier)classifier, testingCorpus);
+        FMeasure result = Evaluator.evaluate((NaiveBayesClassifier)classifier, testingCorpus, 0.9);
         System.out.println(result);
         // 搜狗文本分类语料库上的准确率与速度（两种不同的ITokenizer）
         // ITokenizer         F1      速度

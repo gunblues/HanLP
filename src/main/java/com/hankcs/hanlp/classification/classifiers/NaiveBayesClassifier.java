@@ -150,8 +150,8 @@ public class NaiveBayesClassifier extends AbstractClassifier
         //分词，创建文档
         Document doc = new Document(model.wordIdTrie, model.tokenizer.segment(text));
 
-        double threshold = 0.01;
-        Map<Double, String> scoreMap = predict(doc, threshold);
+        double minScore = 0.01;
+        Map<Double, String> scoreMap = predict(doc, minScore);
 
         List<String> categories = new ArrayList<String>();
         for(Map.Entry<Double,String> entry : scoreMap.entrySet()) {
@@ -235,20 +235,29 @@ public class NaiveBayesClassifier extends AbstractClassifier
         return featureData;
     }
 
-    public FMeasure evaluate(IDataSet testingDataSet)
+    public FMeasure evaluate(IDataSet testingDataSet, double cutOffPoint)
     {
         int c = this.model.catalog.length;
         double[] TP_FP = new double[c]; // 判定为某个类别的数量
         double[] TP_FN = new double[c]; // 某个类别的样本数量
         double[] TP = new double[c];    // 判定为某个类别且判断正确的数量
         double time = System.currentTimeMillis();
+
         for (Document document : testingDataSet)
         {
-            final int out = this.label(document);
+            final Map<Integer, Double> scoreMap = this.label(document);
+            Map.Entry<Integer,Double> entry = scoreMap.entrySet().iterator().next();
+            Integer out = entry.getKey();
+            Double score = entry.getValue();
             final int key = document.category;
-            ++TP_FP[out];
+
+            if (score >= cutOffPoint) {
+                ++TP_FP[out];
+            }
+
             ++TP_FN[key];
-            if (key == out)
+
+            if (key == out && score >= cutOffPoint)
             {
                 ++TP[out];
             }

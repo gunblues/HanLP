@@ -73,7 +73,7 @@ public class FMeasure implements Serializable
         final int w = 6;
         final StringBuilder sb = new StringBuilder(10000);
 
-        printf(sb, "%*s\t%*s\t%*s\t%*s\t%*s%n".replace('*', Character.forDigit(w, 10)), "P", "R", "F1", "A", "");
+        printf(sb, "%*s\t%*s\t%*s\t%*s\t%*s%n".replace('*', Character.forDigit(w, 10)), "P", "R", "F1", "A", "Within Cut-Off Point");
         for (int i = 0; i < catalog.length; i++)
         {
             printf(sb, ("%*.2f\t%*.2f\t%*.2f\t%*.2f\t%"+l+"s%n").replace('*', Character.forDigit(w, 10)),

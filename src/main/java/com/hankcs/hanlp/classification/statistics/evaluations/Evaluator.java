@@ -29,7 +29,7 @@ public class Evaluator
     {
     }
 
-    public static FMeasure evaluate(IClassifier classifier, IDataSet testingDataSet)
+    public static FMeasure evaluate(IClassifier classifier, IDataSet testingDataSet, double cutOffPoint)
     {
         int c = classifier.getModel().catalog.length;
         double[] TP_FP = new double[c]; // 判定为某个类别的数量
@@ -38,11 +38,19 @@ public class Evaluator
         double time = System.currentTimeMillis();
         for (Document document : testingDataSet)
         {
-            final int out = classifier.label(document);
+            final Map<Integer, Double> scoreMap = classifier.label(document);
+            Map.Entry<Integer,Double> entry = scoreMap.entrySet().iterator().next();
+            Integer out = entry.getKey();
+            Double score = entry.getValue();
             final int key = document.category;
-            ++TP_FP[out];
+
+            if (score >= cutOffPoint) {
+                ++TP_FP[out];
+            }
+
             ++TP_FN[key];
-            if (key == out)
+
+            if (key == out && score >= cutOffPoint)
             {
                 ++TP[out];
             }
@@ -56,9 +64,9 @@ public class Evaluator
         return result;
     }
 
-    public static FMeasure evaluate(IClassifier classifier, Map<String, String[]> testingDataSet)
+    public static FMeasure evaluate(IClassifier classifier, Map<String, String[]> testingDataSet, Double cutOffPoint)
     {
-        return evaluate(classifier, new MemoryDataSet(classifier.getModel()).add(testingDataSet));
+        return evaluate(classifier, new MemoryDataSet(classifier.getModel()).add(testingDataSet), cutOffPoint);
     }
 
     /**

@@ -21,6 +21,7 @@ import com.hankcs.hanlp.utility.MathUtility;
 import java.io.IOException;
 import java.util.Map;
 import java.util.TreeMap;
+import java.util.HashMap;
 import java.util.Collections;
 
 import static com.hankcs.hanlp.classification.utilities.io.ConsoleLogger.logger;
@@ -125,7 +126,7 @@ public abstract class AbstractClassifier implements IClassifier
     }
 
     @Override
-    public Map<Double, String> predict(Document document, double threshold)
+    public Map<Double, String> predict(Document document, double minScore)
     {
         AbstractModel model = getModel();
         if (model == null)
@@ -141,7 +142,7 @@ public abstract class AbstractClassifier implements IClassifier
         Map<Double, String> scoreMap = new TreeMap<Double, String>(Collections.reverseOrder());
         for (int i = 0; i < probs.length; i++)
         {
-            if (probs[i] < threshold)
+            if (probs[i] < minScore)
             {
                 continue;
             }
@@ -152,7 +153,7 @@ public abstract class AbstractClassifier implements IClassifier
     }
 
     @Override
-    public int label(Document document) throws IllegalArgumentException, IllegalStateException
+    public Map<Integer, Double> label(Document document) throws IllegalArgumentException, IllegalStateException
     {
         AbstractModel model = getModel();
         if (model == null)
@@ -167,6 +168,7 @@ public abstract class AbstractClassifier implements IClassifier
         double[] probs = categorize(document);
         double max = Double.NEGATIVE_INFINITY;
         int best = -1;
+        Map<Integer, Double> scoreMap = new HashMap<Integer, Double>();
         for (int i = 0; i < probs.length; i++)
         {
             if (probs[i] > max)
@@ -175,6 +177,15 @@ public abstract class AbstractClassifier implements IClassifier
                 best = i;
             }
         }
-        return best;
+
+        if (best == -1)
+        {
+            scoreMap.put(-1, 0.0);
+            return scoreMap;
+        }
+
+        scoreMap.put(best, probs[best]);
+
+        return scoreMap;
     }
 }

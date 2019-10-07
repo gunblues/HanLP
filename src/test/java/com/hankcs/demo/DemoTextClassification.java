@@ -106,7 +106,7 @@ public class DemoTextClassification
         IDataSet testingCorpus = new MemoryDataSet(model).
             load(CORPUS_FOLDER, "UTF-8", -0.1);        // 后10%作为测试集
         // 计算准确率
-        FMeasure result = ((NaiveBayesClassifier)classifier).evaluate(testingCorpus);
+        FMeasure result = ((NaiveBayesClassifier)classifier).evaluate(testingCorpus,0.9);
         System.out.println(result);
 
 
