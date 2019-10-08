@@ -241,8 +241,10 @@ public class NaiveBayesClassifier extends AbstractClassifier
         double[] TP_FP = new double[c]; // 判定为某个类别的数量
         double[] TP_FN = new double[c]; // 某个类别的样本数量
         double[] TP = new double[c];    // 判定为某个类别且判断正确的数量
+        String[] catalogs = testingDataSet.getCatalog().toArray();
         double time = System.currentTimeMillis();
 
+        System.out.println("**************** guess wrong ***************************");
         for (Document document : testingDataSet)
         {
             final Map<Integer, Double> scoreMap = this.label(document);
@@ -261,7 +263,21 @@ public class NaiveBayesClassifier extends AbstractClassifier
             {
                 ++TP[out];
             }
+
+            if (key != out && score >= cutOffPoint) {
+                StringBuilder sb = new StringBuilder();
+                for (int i = 0; i < document.tokenArray.length; i++) {
+                    sb.append(document.tokenArray[i]);
+                    if (i != document.tokenArray.length - 1) {
+                        sb.append(" ");
+                    }
+                }
+                String content = sb.toString();
+                String message = String.format("predict: %s actual: %s : %s, %f", catalogs[out], catalogs[key], content, score);
+                System.out.println(message);
+            }
         }
+        System.out.println("********************************************************");
         time = System.currentTimeMillis() - time;
 
         FMeasure result = calculate(c, testingDataSet.size(), TP, TP_FP, TP_FN);

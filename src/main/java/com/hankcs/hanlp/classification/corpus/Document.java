@@ -30,6 +30,7 @@ public class Document extends BagOfWordsDocument
      * 文档所属类目
      */
     public int category;
+    public String[] tokenArray;
 
     /**
      * 一般用在训练集构造文档时
@@ -48,6 +49,7 @@ public class Document extends BagOfWordsDocument
 
         // 将其转为数组类型，方便处理
         this.category = catalog.addCategory(category);
+        this.tokenArray = tokenArray;
         // 统计词频
         for (int i = 0; i < tokenArray.length; i++)
         {
@@ -63,6 +65,7 @@ public class Document extends BagOfWordsDocument
     public Document(ITrie<Integer> wordIdTrie, String[] tokenArray)
     {
         super();
+        this.tokenArray = tokenArray;
         for (int i = 0; i < tokenArray.length; i++)
         {
             Integer id = wordIdTrie.get(tokenArray[i].toCharArray());
