@@ -12,6 +12,7 @@ import com.hankcs.hanlp.classification.models.NaiveBayesModel;
 import static com.hankcs.hanlp.classification.utilities.io.ConsoleLogger.logger;
 
 import java.util.*;
+import java.io.PrintWriter;
 
 /**
  * 实现一个基于多项式贝叶斯模型的文本分类器
@@ -174,6 +175,7 @@ public class NaiveBayesClassifier extends AbstractClassifier
         Double logprob;
 
         double[] predictionScores = new double[model.catalog.length];
+        long startTime = System.currentTimeMillis();
         for (Map.Entry<Integer, Double> entry1 : model.logPriors.entrySet())
         {
             category = entry1.getKey();
@@ -196,7 +198,10 @@ public class NaiveBayesClassifier extends AbstractClassifier
             predictionScores[category] = logprob;
         }
 
-        if (configProbabilityEnabled) MathUtility.normalizeExp(predictionScores);
+        if (configProbabilityEnabled) {
+            MathUtility.normalizeExp(predictionScores);
+        }
+
         return predictionScores;
     }
 
@@ -221,6 +226,7 @@ public class NaiveBayesClassifier extends AbstractClassifier
         int[][] featureCategoryJointCount = new int[selectedFeatures.size()][];
         featureData.wordIdTrie = new BinTrie<Integer>();
         String[] wordIdArray = dataSet.getLexicon().getWordIdArray();
+
         int p = -1;
         for (Integer feature : selectedFeatures.keySet())
         {
@@ -231,6 +237,15 @@ public class NaiveBayesClassifier extends AbstractClassifier
                       featureData.featureCategoryJointCount.length,
                       featureCategoryJointCount.length / (double)featureData.featureCategoryJointCount.length * 100.);
         featureData.featureCategoryJointCount = featureCategoryJointCount;
+
+        Arrays.sort(wordIdArray);
+        try {
+            PrintWriter writer = new PrintWriter("/tmp/selected_features.txt", "UTF-8");
+            for (String word : wordIdArray) {
+                writer.println(word);
+            }
+            writer.close();
+        } catch (Exception e) {}
 
         return featureData;
     }
@@ -245,6 +260,7 @@ public class NaiveBayesClassifier extends AbstractClassifier
         double time = System.currentTimeMillis();
 
         System.out.println("**************** guess wrong ***************************");
+        System.out.println("predict\tactual\tproduct_title\tscore");
         for (Document document : testingDataSet)
         {
             final Map<Integer, Double> scoreMap = this.label(document);
@@ -273,7 +289,7 @@ public class NaiveBayesClassifier extends AbstractClassifier
                     }
                 }
                 String content = sb.toString();
-                String message = String.format("predict: %s actual: %s : %s, %f", catalogs[out], catalogs[key], content, score);
+                String message = String.format("%s\t%s\t%s\t%f", catalogs[out], catalogs[key], content, score);
                 System.out.println(message);
             }
         }

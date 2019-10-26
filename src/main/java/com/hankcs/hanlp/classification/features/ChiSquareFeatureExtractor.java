@@ -47,6 +47,9 @@ public class ChiSquareFeatureExtractor
         double N1dot, N0dot, N00, N01, N10, N11;
         double chisquareScore;
         Double previousScore;
+
+        int selected_count = 0;
+        int not_selected_count = 0;
         for (int feature = 0; feature < stats.featureCategoryJointCount.length; feature++)
         {
             int[] categoryList = stats.featureCategoryJointCount[feature];
@@ -80,7 +83,10 @@ public class ChiSquareFeatureExtractor
                     if (previousScore == null || chisquareScore > previousScore)
                     {
                         selectedFeatures.put(feature, chisquareScore);
+                        selected_count++;
                     }
+                } else {
+                    not_selected_count++;
                 }
             }
         }

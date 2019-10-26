@@ -137,6 +137,7 @@ public abstract class AbstractDataSet implements IDataSet
             int logEvery = (int) Math.ceil((e - b) / 10000f);
             for (int i = b; i < e; i++)
             {
+                logger.out("%s", files[i]);
                 add(folder.getName(), TextProcessUtility.readTxt(files[i], charsetName));
                 if (i % logEvery == 0)
                 {
