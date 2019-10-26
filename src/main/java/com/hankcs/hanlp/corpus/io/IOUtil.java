@@ -26,6 +26,9 @@ import java.util.*;
 import static com.hankcs.hanlp.utility.Predefine.logger;
 import static com.hankcs.hanlp.HanLP.Config.IOAdapter;
 
+import org.nustaq.serialization.FSTObjectOutput;
+import org.nustaq.serialization.FSTObjectInput;
+
 /**
  * 一些常用的IO操作
  *
@@ -44,9 +47,16 @@ public class IOUtil
     {
         try
         {
+/*
             ObjectOutputStream oos = new ObjectOutputStream(IOUtil.newOutputStream(path));
             oos.writeObject(o);
             oos.close();
+*/
+
+            FSTObjectOutput out = new FSTObjectOutput(new FileOutputStream(path));
+            out.writeObject( o );
+            out.close();
+
         }
         catch (IOException e)
         {
@@ -65,13 +75,21 @@ public class IOUtil
      */
     public static Object readObjectFrom(String path)
     {
-        ObjectInputStream ois = null;
+        // ObjectInputStream ois = null;
         try
         {
+/*
             ois = new ObjectInputStream(IOUtil.newInputStream(path));
             Object o = ois.readObject();
             ois.close();
             return o;
+*/
+
+            FSTObjectInput in = new FSTObjectInput(new FileInputStream(path));
+            Object result = (Object)in.readObject();
+            in.close(); // required !
+            return result;
+            
         }
         catch (Exception e)
         {
