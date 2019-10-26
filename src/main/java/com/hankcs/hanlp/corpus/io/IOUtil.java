@@ -16,6 +16,7 @@ import com.hankcs.hanlp.corpus.tag.Nature;
 import com.hankcs.hanlp.dictionary.CoreDictionary;
 import com.hankcs.hanlp.utility.LexiconUtility;
 import com.hankcs.hanlp.utility.TextUtility;
+import com.hankcs.hanlp.classification.models.NaiveBayesModel;
 
 import java.io.*;
 import java.nio.ByteBuffer;
@@ -26,9 +27,13 @@ import java.util.*;
 import static com.hankcs.hanlp.utility.Predefine.logger;
 import static com.hankcs.hanlp.HanLP.Config.IOAdapter;
 
-import org.nustaq.serialization.FSTObjectOutput;
+import com.esotericsoftware.kryo.io.Output;
+import com.esotericsoftware.kryo.io.Input;
+import com.esotericsoftware.kryo.Kryo;
+/*
 import org.nustaq.serialization.FSTObjectInput;
-
+import org.nustaq.serialization.FSTObjectOutput;
+*/
 /**
  * 一些常用的IO操作
  *
@@ -53,10 +58,16 @@ public class IOUtil
             oos.close();
 */
 
+            Output output = new Output(new FileOutputStream(path));
+            Kryo kryo=new Kryo();
+            kryo.setRegistrationRequired(false);
+            kryo.writeObject(output, o);
+            output.close();
+/*
             FSTObjectOutput out = new FSTObjectOutput(new FileOutputStream(path));
-            out.writeObject( o );
+            out.writeObject(o, com.hankcs.hanlp.classification.models.NaiveBayesModel.class);
             out.close();
-
+*/
         }
         catch (IOException e)
         {
@@ -73,7 +84,7 @@ public class IOUtil
      * @param path
      * @return
      */
-    public static Object readObjectFrom(String path)
+    public static NaiveBayesModel readObjectFrom(String path)
     {
         // ObjectInputStream ois = null;
         try
@@ -85,11 +96,20 @@ public class IOUtil
             return o;
 */
 
+
+            Input input = new Input(new FileInputStream(path));
+            Kryo kryo=new Kryo();
+            kryo.setRegistrationRequired(false);
+            NaiveBayesModel obj = kryo.readObject(input, com.hankcs.hanlp.classification.models.NaiveBayesModel.class);
+            input.close();
+            return obj;
+
+/*
             FSTObjectInput in = new FSTObjectInput(new FileInputStream(path));
-            Object result = (Object)in.readObject();
-            in.close(); // required !
+            NaiveBayesModel result = (NaiveBayesModel)in.readObject(com.hankcs.hanlp.classification.models.NaiveBayesModel.class);
+            in.close();
             return result;
-            
+*/
         }
         catch (Exception e)
         {
