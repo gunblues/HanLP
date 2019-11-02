@@ -226,12 +226,31 @@ public class NaiveBayesClassifier extends AbstractClassifier
         int[][] featureCategoryJointCount = new int[selectedFeatures.size()][];
         featureData.wordIdTrie = new BinTrie<Integer>();
         String[] wordIdArray = dataSet.getLexicon().getWordIdArray();
-
+        Map<String, ArrayList<String>> categoryFeatures = new HashMap<>();
+        String[] catalog = dataSet.getCatalog().toArray();
         int p = -1;
         for (Integer feature : selectedFeatures.keySet())
         {
             featureCategoryJointCount[++p] = featureData.featureCategoryJointCount[feature];
             featureData.wordIdTrie.put(wordIdArray[feature], p);
+
+            for (int category = 0;  category < featureData.featureCategoryJointCount[feature].length; category++) {
+                int featureCount = featureData.featureCategoryJointCount[feature][category];
+                if (featureCount > 0) {
+                    ArrayList<String> featureList = null;
+                    if (!categoryFeatures.containsKey(catalog[category])) {
+                        featureList = new ArrayList<String>();
+                        featureList.add(wordIdArray[feature]);
+                    } else {
+                        featureList = categoryFeatures.get(catalog[category]);
+
+                        if (!featureList.contains(wordIdArray[feature])) {
+                            featureList.add(wordIdArray[feature]);
+                        }
+                    }
+                    categoryFeatures.put(catalog[category], featureList);
+                }
+            }
         }
         logger.finish(",选中特征数:%d / %d = %.2f%%\n", featureCategoryJointCount.length,
                       featureData.featureCategoryJointCount.length,
@@ -245,6 +264,15 @@ public class NaiveBayesClassifier extends AbstractClassifier
                 writer.println(word);
             }
             writer.close();
+
+            writer = new PrintWriter("/tmp/selected_features_by_category.txt", "UTF-8");
+            for(Map.Entry<String, ArrayList<String>> entry : categoryFeatures.entrySet()) {
+                String key = entry.getKey();
+                ArrayList<String> value = entry.getValue();
+                writer.printf("%s : \n%s\n\n", key, String.join("\n", value));
+            }
+            writer.close();
+
         } catch (Exception e) {}
 
         return featureData;
